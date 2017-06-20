@@ -227,7 +227,7 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
 
                                         // handle CSS files
                                         processCssFiles(file, subDirCssFiles, dataUriTokenResolver,
-                                                getSubDirAggregation(file, aggr, ResourcesScanner.CSS_FILE_EXTENSION),
+                                                getSubDirAggregation(file, aggr, ResourcesScanner.CSS_FILE_EXTENSION, suffix),
                                                 null);
                                     }
 
@@ -235,7 +235,7 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
                                     if (!subDirJsFiles.isEmpty()) {
                                         // handle JavaScript files
                                         processJsFiles(file, subDirJsFiles,
-                                                getSubDirAggregation(file, aggr, ResourcesScanner.JS_FILE_EXTENSION),
+                                                getSubDirAggregation(file, aggr, ResourcesScanner.JS_FILE_EXTENSION, suffix),
                                                 getCompilationLevel(compilationLevel), getWarningLevel(warningLevel),
                                                 resolveSourceMap(null), null, getLanguageIn(languageIn), getLanguageOut(languageOut));
                                     }
@@ -321,7 +321,7 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
 
                                             // handle CSS files
                                             processCssFiles(file, subDirCssFiles, dataUriTokenResolver,
-                                                    getSubDirAggregation(file, aggr, ResourcesScanner.CSS_FILE_EXTENSION),
+                                                    getSubDirAggregation(file, aggr, ResourcesScanner.CSS_FILE_EXTENSION, suffix),
                                                     null);
                                         }
 
@@ -330,7 +330,7 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
                                         if (!subDirJsFiles.isEmpty()) {
                                             // handle JavaScript files
                                             processJsFiles(file, subDirJsFiles,
-                                                    getSubDirAggregation(file, aggr, ResourcesScanner.JS_FILE_EXTENSION),
+                                                    getSubDirAggregation(file, aggr, ResourcesScanner.JS_FILE_EXTENSION, suffix),
                                                     resolveCompilationLevel(rs), resolveWarningLevel(rs),
                                                     resolveSourceMap(rs), null, resolveLanguageIn(rs), resolveLanguageOut(rs));
                                         }
@@ -435,18 +435,26 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
         return false;
     }
 
-    private Aggregation getSubDirAggregation(File dir, Aggregation aggr, String fileExtension) {
-        Aggregation subDirAggr = new Aggregation();
-        subDirAggr.setPrependedFile(aggr.getPrependedFile());
-        subDirAggr.setRemoveIncluded(aggr.isRemoveIncluded());
-        subDirAggr.setWithoutCompress(aggr.isWithoutCompress());
-        subDirAggr.setSubDirMode(true);
+	private Aggregation getSubDirAggregation(File dir, Aggregation aggr, String fileExtension, String suffix) {
+		Aggregation subDirAggr = new Aggregation();
+		subDirAggr.setPrependedFile(aggr.getPrependedFile());
+		subDirAggr.setRemoveIncluded(aggr.isRemoveIncluded());
+		subDirAggr.setWithoutCompress(aggr.isWithoutCompress());
+		subDirAggr.setSubDirMode(true);
 
-        File outputFile = new File(dir, dir.getName() + "." + fileExtension);
-        subDirAggr.setOutputFile(outputFile);
+		File path = null;
+		if (aggr.getOutputDir() == null) {
+			path = dir;
+		} else {
+			path = aggr.getOutputDir();
+		}
 
-        return subDirAggr;
-    }
+		File outputFile =
+			new File(path, dir.getName() + (suffix != null ? "-" + suffix : "") + "." + fileExtension);
+		subDirAggr.setOutputFile(outputFile);
+
+		return subDirAggr;
+	}
 
     private CompilationLevel resolveCompilationLevel(ResourcesSet rs) throws MojoExecutionException {
         CompilationLevel compLevel;

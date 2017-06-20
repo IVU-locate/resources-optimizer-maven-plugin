@@ -61,6 +61,13 @@ public class Aggregation {
      * @parameter
      */
     private File outputFile;
+    
+    /**
+	 * Directory for aggregated files in subDirMode.
+	 *
+	 * @parameter
+	 */
+	private File outputDir;
 
     /**
      * File to be prepended to the aggregated file.
@@ -116,4 +123,12 @@ public class Aggregation {
     public void setPrependedFile(File prependedFile) {
         this.prependedFile = prependedFile;
     }
+    
+	public File getOutputDir() {
+		return outputDir;
+	}
+
+	public void setOutputDir(File outputDir) {
+		this.outputDir = outputDir;
+	}
 }
