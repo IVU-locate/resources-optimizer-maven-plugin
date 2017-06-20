@@ -18,9 +18,14 @@
 
 package org.primefaces.extensions.optimizerplugin;
 
-import com.google.javascript.jscomp.CompilationLevel;
-import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
-import com.google.javascript.jscomp.WarningLevel;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -35,10 +40,9 @@ import org.primefaces.extensions.optimizerplugin.util.ResourcesSetAdapter;
 import org.primefaces.extensions.optimizerplugin.util.ResourcesSetCssAdapter;
 import org.primefaces.extensions.optimizerplugin.util.ResourcesSetJsAdapter;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.javascript.jscomp.CompilationLevel;
+import com.google.javascript.jscomp.CompilerOptions.LanguageMode;
+import com.google.javascript.jscomp.WarningLevel;
 
 /**
  * Entry point for this plugin.
@@ -161,6 +165,13 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
      * @parameter property="languageOut" default-value="NO_TRANSPILE"
      */
     private String languageOut;
+    
+    /**
+	 * Probertiesfile zur Definition der Includes
+	 * 
+	 * @parameter property="includeProperties"
+	 */
+	private File includeProperties;
 
     /**
      * Compile sets.
@@ -189,7 +200,32 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
 
         try {
             if (resourcesSets == null || resourcesSets.isEmpty()) {
-                String[] incls = (includes != null && includes.length > 0) ? includes : DEFAULT_INCLUDES;
+            	String[] incls = null;
+				if (includeProperties != null) {
+					if (!includeProperties.exists() || includeProperties.isDirectory()) {
+						getLog().warn("Configured includeProperties does not exist or is an directory.");
+					}
+					BufferedReader in = null;
+					try {
+						in = new BufferedReader(new FileReader(includeProperties));
+						List<String> lines = new ArrayList<String>();
+						String line = null;
+						while ((line = in.readLine()) != null) {
+							if (!new File(inputDir + "/" + line).exists()) {
+								getLog().warn(
+									"Configured resource [" + line + "]  does not exists an will be ignored.");
+								continue;
+							}
+							lines.add(line);
+						}
+						incls = lines.toArray(new String[lines.size()]);
+					} finally {
+						in.close();
+					}
+
+				} else {
+					incls = (includes != null && includes.length > 0) ? includes : DEFAULT_INCLUDES;
+				}
                 String[] excls = (excludes != null && excludes.length > 0) ? excludes : DEFAULT_EXCLUDES;
 
                 Aggregation[] aggrs;
