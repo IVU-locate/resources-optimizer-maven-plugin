@@ -659,9 +659,9 @@ public class ResourcesOptimizerMojo extends AbstractMojo {
             return filteredFiles;
         }
 
-        for (File subDirFile : subDirFiles) {
-            if (resSetFiles.contains(subDirFile)) {
-                filteredFiles.add(subDirFile);
+        for (File resSetFile : resSetFiles) {
+            if (subDirFiles.contains(resSetFile)) {
+                filteredFiles.add(resSetFile);
             }
         }
 
